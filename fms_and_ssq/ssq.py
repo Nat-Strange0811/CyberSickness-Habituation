@@ -8,7 +8,25 @@ import csv
 import datetime
 
 class ssq():
+    '''
+    Class to perform SSQ analysis
+    '''
     def __init__(self, data, folder):
+        '''
+        Function init
+
+        Sets initial variables for the class
+
+        Inputs:
+            data - SSQ data
+            folder - Folder to save results
+        
+        Outputs:
+
+            Plot of SSQ scores across sessions
+        '''
+
+        #Initialise class level variables
         self.save_folder = folder
         self.data = data
         self.markers = ["o", "s", "D", "^", "v", "<", ">", "p", "*", "X", "P", "+", "x", "H", "d", "p"]
@@ -30,9 +48,11 @@ class ssq():
                     "#00d0ff",
                     "#ffff00f3",
                 ]
+        
+        #Initialise session dictionary
         self.sessions = {}
         for session in range(1,7):
-            self.sessions[session] = [np.mean(self.data[(participant, session)][1]['Value'] - self.data[(participant, session)][0]['Value']) 
+            self.sessions[session] = [np.nanmean(self.data[(participant, session)][1]['Value'] - self.data[(participant, session)][0]['Value']) 
                                              for participant in [key[0] for key in list(self.data.keys())] 
                                              if (participant, session) in self.data]
         self.session_1 = self.sessions[1]
@@ -43,7 +63,7 @@ class ssq():
         self.session_6 = self.sessions[6]
 
     def analyse(self):
-        # Perform FMS analysis
+        # Perform SSQ analysis
         self.anova()
 
         self.plot()
@@ -54,8 +74,8 @@ class ssq():
 
     def anova(self):
         from scipy.stats import f_oneway
-
-        f_stat, p_value = f_oneway(self.session_1, self.session_2, self.session_3, self.session_4, self.session_5, self.session_6)
+        clean_sessions = [np.array(vals)[~np.isnan(vals)] for vals in self.sessions.values()]
+        f_stat, p_value = f_oneway(*clean_sessions)
         self.anova_results = (f_stat, p_value)
     
     def plot(self):
@@ -63,10 +83,10 @@ class ssq():
         plt.figure(figsize=(10, 6))
         plt.subplot(1,2,1)
         for i, participant in enumerate(set([key[0] for key in self.data.keys()])):
-            sessions = [np.mean(self.data[(participant, session)][1]['Value'] - self.data[(participant, session)][0]['Value']) for session in range(1, 7) if (participant, session) in self.data]
+            sessions = [np.nanmean(self.data[(participant, session)][1]['Value'] - self.data[(participant, session)][0]['Value']) for session in range(1, 7) if (participant, session) in self.data]
             print(sessions)
             plt.plot(range(1, len(sessions) + 1), sessions, marker=self.markers[i], label=participant, color=self.colors[i])
-        average = [np.mean(self.session_1), np.mean(self.session_2), np.mean(self.session_3), np.mean(self.session_4), np.mean(self.session_5), np.mean(self.session_6)]
+        average = [np.nanmean(self.session_1), np.nanmean(self.session_2), np.nanmean(self.session_3), np.nanmean(self.session_4), np.nanmean(self.session_5), np.nanmean(self.session_6)]
         plt.xlabel('Session')
         plt.ylabel('SSQ Score')
         plt.legend()
@@ -80,7 +100,8 @@ class ssq():
         plt.savefig(f'Generated_plots/ssq/{date_time}_SSQ_Scores_Across_Sessions.png')
 
     def t_test(self):
-        t_stat, p_value = stats.ttest_ind(self.session_1, self.session_6, equal_var=False)
+        clean_sessions = [np.array(vals)[~np.isnan(vals)] for vals in self.sessions.values()]
+        t_stat, p_value = stats.ttest_ind(clean_sessions[0], clean_sessions[5], equal_var=False)
         self.t_test_results = (t_stat, p_value)
 
     def save_results(self):

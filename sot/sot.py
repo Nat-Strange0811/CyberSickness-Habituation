@@ -5,86 +5,136 @@ import matplotlib.pyplot as plt
 from scipy import stats
 import os
 import csv
+import datetime
+from statsmodels.stats.multitest import multipletests
 
 class sot():
+    '''
+    Class Sot to perform the analysis of the Sensory Organisation Test
+    '''
     def __init__(self, data):
-        self.data = data
-        self.markers = ["o", "s", "D", "^", "v", "<", ">", "p", "*", "X", "P", "+", "x", "H"]
-        self.colors = [
-                    "#1f77b4", 
-                    "#ff7f0e",
-                    "#2ca02c",
-                    "#d62728",
-                    "#9467bd",
-                    "#8c564b",
-                    "#e377c2",
-                    "#7f7f7f",
-                    "#bcbd22",
-                    "#17becf",
-                    "#e41a1c",
-                    "#377eb8",
-                    "#4daf4a",
-                    "#984ea3",
-                ]
-        
-        self.sessions = {}
-        for session in range(1,7):
-            self.sessions[session] = [np.mean(self.data[(participant, session)]['FMS']) 
-                                             for participant in self.data.keys() 
-                                             if (participant, session) in self.data]
+        '''
+        Function Init
 
-        self.session_1 = self.sessions[1]
-        self.session_2 = self.sessions[2]
-        self.session_3 = self.sessions[3]
-        self.session_4 = self.sessions[4]
-        self.session_5 = self.sessions[5]
-        self.session_6 = self.sessions[6]
+        Designed to initialise and trigger the analysis
+
+        Inputs:
+
+            data: The data to be analysed
+
+        Outputs:
+
+            Plots of all the SOT environments boxplots
+            CSV t-test results for difference from before to after
+        '''
+        self.data = data
+        self.t_test_results = {}
+        self.environments = [
+            "C1", "C2", "C3", "C4", "C5", "C6", "SOM", "VIS", "VEST", "PREF"
+        ]
+        self.analyse()
 
     def analyse(self):
-        # Perform FMS analysis
-        self.anova()
-
+        # Perform SOT analysis
         self.plot()
 
         self.t_test()
 
-        self.save_results()
+        self.save_results("C:/Users/natty/OneDrive/Documents/Uni - Masters/Dissertation/Data/SOT Metrics")
 
-    def anova(self):
-        from scipy.stats import f_oneway
-
-        f_stat, p_value = f_oneway(self.session_1, self.session_2, self.session_3, self.session_4, self.session_5, self.session_6)
-        self.anova_results = (f_stat, p_value)
-    
     def plot(self):
-        date_time = pd.to_datetime("now")
-        plt.figure(figsize=(10, 6))
-        for participant, i in enumerate(set([key[0] for key in self.data.keys()])):
-            sessions = [self.data[(participant, session)] for session in range(1, 7) if (participant, session) in self.data]
-            if len(sessions) < 5:
-                continue
-            plt.plot(range(1, len(sessions) + 1), sessions, marker=self.markers[i], label=participant, color=self.colors[i])
-        average = np.mean([self.session_1, self.session_2, self.session_3, self.session_4, self.session_5, self.session_6], axis=1)
-        plt.plot(range(1, 7), average, marker='o', color='black', label='Average')
-        plt.title('FMS Scores Across Sessions')
-        plt.xlabel('Session')
-        plt.ylabel('FMS Score')
-        plt.legend()
-        plt.savefig(f'Generated_plots/fms/{date_time}_FMS_Scores_Across_Sessions.png')
+        '''
+        Function - Plot
+
+        Generates boxplots for each SOT environment
+
+        Inputs:
+
+            None
+
+        Outputs:
+
+            Boxplots saved to 'Generated_plots/sot'
+        '''
+        #Form the directory
+        if not os.path.exists('Generated_plots/sot'):
+            os.makedirs('Generated_plots/sot')
+        date_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+
+        #Loop over all environments and plot the differing boxplots
+        for i, environment in enumerate(self.environments):
+            data = self.data[environment]
+            plt.figure(figsize=(10, 6))
+            plt.subplot(1,2,1)
+            plt.boxplot(data[0])
+            plt.ylabel('SOT Score')
+            plt.title(f'Initial SOT Scores')
+            plt.subplot(1,2,2)
+            plt.boxplot(data[1])
+            plt.title(f'Final SOT Scores')
+            plt.ylabel('SOT Score')
+            plt.suptitle(f'Compairing distributions of SOT Scores for {environment}')
+            plt.savefig(f'Generated_plots/sot/{date_time}_SOT_distribution_{environment}_Scores_Across_Sessions.png')
+            plt.close()
 
     def t_test(self):
-        t_stat, p_value = stats.ttest_ind(self.session_1, self.session_6, equal_var=False)
-        self.t_test_results = (t_stat, p_value)
+        '''
+        Function - T-Test
+
+        Performs independent t-tests for each SOT environment
+
+        Inputs:
+
+            None
+
+        Outputs:
+
+            t-test results stored in self.t_test_results
+        '''
+        #Initialise the p_values
+        p_values = []
+
+        #Loop over all environments
+        for i, environment in enumerate(self.environments):
+            #Calculate the t_stat and p_value
+            t_stat, p_value = stats.ttest_ind(self.data[environment][0], self.data[environment][1], equal_var=False)
+            #Append the results
+            self.t_test_results[environment] = [t_stat, p_value]
+            p_values.append(p_value)
+        #Correct the p_values using multiple tests
+        _, p_values_corrected, _, _ = multipletests(p_values, method='fdr_bh')
+
+        #Update the p_values in the results
+        for i, environment in enumerate(self.environments):
+            self.t_test_results[environment][1] = p_values_corrected[i]
 
     def save_results(self, filepath):
-        labels = ["Anova", "t_test"]
-        metrics = [self.anova_results, self.t_test_results]
+        '''
+        Function Save Results
 
-        data = [labels, metrics]
+        Saves the results of the SOT analysis to a CSV file
 
+        Inputs:
+
+            filepath: The path to the file where results will be saved
+
+        Outputs:
+
+            CSV file
+        '''
+
+        #Initialise the date_time
+        date_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+
+        #Form the data
+        data = [["Environment","t_test"]]
+        for i, result in enumerate(self.t_test_results.values()):
+            data.append([self.environments[i], result[1]])
+
+        #Form directory and save
         if not os.path.exists(filepath):
             os.makedirs(filepath)
-        
-        with open(os.path.join(filepath, f"fms_metrics.csv"), 'w') as f:
+
+        with open(os.path.join(filepath, f"SOT_metrics_{date_time}.csv"), 'w') as f:
             writer = csv.writer(f)
             writer.writerows(data)

@@ -8,7 +8,26 @@ import csv
 import datetime
 
 class fms():
+    '''
+    Class to perform FMS analysis
+    '''
     def __init__(self, data, folder):
+        '''
+        Function Init
+
+        Used to initialise the FMS analysis class.
+
+        Inputs:
+
+            Data - FMS data
+            Folder - Folder to save results
+        
+        Outputs:
+
+            Plot of FMS scores across sessions
+        '''
+
+        #Initialise class level variables
         self.save_folder = folder
         self.data = data
         self.markers = ["o", "s", "D", "^", "v", "<", ">", "p", "*", "X", "P", "+", "x", "H", "d", "p"]
@@ -30,65 +49,94 @@ class fms():
                     "#00d0ff",
                     "#ffff00f3",
                 ]
-        
-        self.sessions = {}
-        for session in range(1,7):
-            self.sessions[session] = [np.mean(self.data[(participant, session)]['FMS']) 
-                                             for participant in [key[0] for key in list(self.data.keys())] 
-                                             if (participant, session) in self.data]
 
-        self.session_1 = self.sessions[1]
-        self.session_2 = self.sessions[2]
-        self.session_3 = self.sessions[3]
-        self.session_4 = self.sessions[4]
-        self.session_5 = self.sessions[5]
-        self.session_6 = self.sessions[6]
+        #Initialise self.sessions dictionary to hold the list of all FMS scores from a particular session
+        self.sessions = {
+            self.sessionID: [] for self.sessionID in range(1, 7)
+        }
+
+        #Fill the self.sessions dictionary with FMS scores
+        for participant in self.data.participantSessions:
+            if not np.isnan(np.nanmean(participant.FMS['FMS'])):
+                self.sessions[participant.sessionID].append(np.nanmean(participant.FMS['FMS']))
 
     def analyse(self):
-        # Perform FMS analysis
+        
+        #Check for divergence between sessions
         self.anova()
 
+        #Plot the distributions
         self.plot()
 
+        #Perform t-test between session 1 and session 6
         self.t_test()
 
+        #Save results
         self.save_results()
 
     def anova(self):
+        '''
+        Function to perform ANOVA test
+        '''
         from scipy.stats import f_oneway
-
-        f_stat, p_value = f_oneway(self.session_1, self.session_2, self.session_3, self.session_4, self.session_5, self.session_6)
+        #Make sure no nan values are present
+        clean_sessions = [np.array(vals)[~np.isnan(vals)] for vals in self.sessions.values()]
+        #Calculate f_stat and p_value
+        f_stat, p_value = f_oneway(*clean_sessions)
+        #Append result
         self.anova_results = (f_stat, p_value)
     
     def plot(self):
+        '''
+        Function to plot FMS scores across sessions
+        '''
+
+        #Initialise date time and figure size
         date_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        plt.figure(figsize=(10, 6))
+        plt.figure(figsize=(20, 12))
+
+        #First plot, each individual participants FMS scores over time
         plt.subplot(1,2,1)
-        for i, participant in enumerate(set([key[0] for key in self.data.keys()])):
-            sessions = [np.mean(self.data[(participant, session)]['FMS']) for session in range(1, 7) if (participant, session) in self.data]
-            if len(sessions) < 5:
-                continue
-            plt.plot(range(1, len(sessions) + 1), sessions, marker=self.markers[i], label=participant, color=self.colors[i])
-        average = [np.mean(self.session_1), np.mean(self.session_2), np.mean(self.session_3), np.mean(self.session_4), np.mean(self.session_5), np.mean(self.session_6)]
+        #Loop through each participant
+        for i, part in enumerate(set([key[0] for key in self.data.fms.keys()])):
+            #Hold individual session
+            sessions = [[] for _ in range(6)]
+            #Loop over each participant
+            for participant in self.data.participantSessions:
+                #Check if the participant is the correct one
+                if participant.participant == i + 1:
+                    #Check if the session FMS scores are not Nan
+                    if not np.isnan(np.nanmean(participant.FMS['FMS'])):
+                        #Append session FMS score to the list
+                        sessions[participant.sessionID - 1].append(np.nanmean(participant.FMS['FMS']))
+            #Calculate the mean value for each session
+            sessions = [np.nanmean(session) for session in sessions]
+            #Plot individual participant's FMS scores
+            print(f"Participant {part} FMS Scores: {sessions}")
+            plt.plot(range(1, 7), sessions, marker=self.markers[i], label=part, color=self.colors[i])
         plt.xlabel('Session')
         plt.ylabel('FMS Score')
         plt.legend()
 
+        #Calculate the average for each session
+        average = [np.nanmean(self.sessions[session]) for session in range(1, 7)]
         plt.subplot(1,2,2)
         plt.plot(range(1, 7), average, marker='o', color='black', label='Average')
-        print(average)
-        plt.suptitle('FMS Scores Across Sessions')
         plt.xlabel('Session')
         plt.ylabel('FMS Score')
         plt.legend()
+        plt.suptitle('FMS Scores Across Sessions')
         plt.tight_layout(rect=[0, 0, 1, 0.95])
         plt.savefig(f'Generated_plots/fms/{date_time}_FMS_Scores_Across_Sessions.png')
 
     def t_test(self):
-        t_stat, p_value = stats.ttest_ind(self.session_1, self.session_6, equal_var=False)
+        #Perform a t_test compairing the first and last session
+        clean_sessions = [np.array(vals)[~np.isnan(vals)] for vals in self.sessions.values()]
+        t_stat, p_value = stats.ttest_ind(clean_sessions[0], clean_sessions[5], equal_var=False)
         self.t_test_results = (t_stat, p_value)
 
     def save_results(self):
+        #Save results to a CSV
         date_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         labels = ["Anova", "t_test"]
         metrics = [self.anova_results[1], self.t_test_results[1]]

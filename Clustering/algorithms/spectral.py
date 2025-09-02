@@ -7,8 +7,26 @@ import datetime
 from sklearn.preprocessing import StandardScaler
 
 class Spectral(cluster):
-
+    '''
+    Class used to initialise and trigger spectral clustering method
+    '''
     def __init__(self, data, data_labels):
+        '''
+        Function - init:
+
+        Used to initialise and provide access to the data and its labels.
+
+        Inputs:
+
+            Data - The data object created from main
+            Data_labels - The labels corresponding to the data features
+
+        Outputs:
+
+            Spectral cluster
+        '''
+
+        #Initialise
         self.data = data.data
         self.data_scaled = StandardScaler().fit_transform(data.data)
         self.participants = data.participantSessions

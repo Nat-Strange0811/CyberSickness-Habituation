@@ -3,6 +3,9 @@ __pycache__/
 *.py[codz]
 *$py.class
 
+#To do script
+*to_do.txt
+
 #Generated images
 *.png
 

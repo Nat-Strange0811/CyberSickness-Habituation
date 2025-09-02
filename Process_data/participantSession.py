@@ -4,46 +4,65 @@ import numpy as np
 import pandas as pd
 
 class participantSession:
-    def __init__(self, iec, itc, rbp, ssq_start, ssq_end, fms, sessionID, participant, runID):
-        if runID:
-            self.iec = iec
-            self.itc = itc
-            self.rbp = rbp
-            self.SSQ_start = ssq_start
-            self.SSQ_end = ssq_end
-            self.FMS = fms
-            self.sessionID = int(sessionID)
-            self.participant = participant
-            self.runID = runID
-            self.dataLabels = [
-                                'ITC-Fz-delta', 'ITC-Fz-theta1', 'ITC-Fz-theta2', 'ITC-Fz-alpha1', 'ITC-Fz-alpha2', 'ITC-Fz-alpha3', 'ITC-Fz-beta1', 'ITC-Fz-beta2', 'ITC-Fz-beta3', 'ITC-Fz-beta4',
-                                'ITC-Cz-delta', 'ITC-Cz-theta1', 'ITC-Cz-theta2', 'ITC-Cz-alpha1', 'ITC-Cz-alpha2', 'ITC-Cz-alpha3', 'ITC-Cz-beta1', 'ITC-Cz-beta2', 'ITC-Cz-beta3', 'ITC-Cz-beta4',
-                                'ITC-Pz-delta', 'ITC-Pz-theta1', 'ITC-Pz-theta2', 'ITC-Pz-alpha1', 'ITC-Pz-alpha2', 'ITC-Pz-alpha3', 'ITC-Pz-beta1', 'ITC-Pz-beta2', 'ITC-Pz-beta3', 'ITC-Pz-beta4',
-                                'ITC-P3-delta', 'ITC-P3-theta1', 'ITC-P3-theta2', 'ITC-P3-alpha1', 'ITC-P3-alpha2', 'ITC-P3-alpha3', 'ITC-P3-beta1', 'ITC-P3-beta2', 'ITC-P3-beta3', 'ITC-P3-beta4',
-                                'ITC-Cp5-delta', 'ITC-Cp5-theta1', 'ITC-Cp5-theta2', 'ITC-Cp5-alpha1', 'ITC-Cp5-alpha2', 'ITC-Cp5-alpha3', 'ITC-Cp5-beta1', 'ITC-Cp5-beta2', 'ITC-Cp5-beta3', 'ITC-Cp5-beta4',
-                                'ITC-P4-delta', 'ITC-P4-theta1', 'ITC-P4-theta2', 'ITC-P4-alpha1', 'ITC-P4-alpha2', 'ITC-P4-alpha3', 'ITC-P4-beta1', 'ITC-P4-beta2', 'ITC-P4-beta3', 'ITC-P4-beta4',
-                                'ITC-Cp6-delta', 'ITC-Cp6-theta1', 'ITC-Cp6-theta2', 'ITC-Cp6-alpha1', 'ITC-Cp6-alpha2', 'ITC-Cp6-alpha3', 'ITC-Cp6-beta1', 'ITC-Cp6-beta2', 'ITC-Cp6-beta3', 'ITC-Cp6-beta4',
-                                'IEC-Fz_Pz-delta', 'IEC-Fz_Pz-theta1', 'IEC-Fz_Pz-theta2', 'IEC-Fz_Pz-alpha1', 'IEC-Fz_Pz-alpha2', 'IEC-Fz_Pz-alpha3', 'IEC-Fz_Pz-beta1', 'IEC-Fz_Pz-beta2', 'IEC-Fz_Pz-beta3', 'IEC-Fz_Pz-beta4',
-                                'IEC-Fz_P3-delta', 'IEC-Fz_P3-theta1', 'IEC-Fz_P3-theta2', 'IEC-Fz_P3-alpha1', 'IEC-Fz_P3-alpha2', 'IEC-Fz_P3-alpha3', 'IEC-Fz_P3-beta1', 'IEC-Fz_P3-beta2', 'IEC-Fz_P3-beta3', 'IEC-Fz_P3-beta4',
-                                'IEC-Fz_P4-delta', 'IEC-Fz_P4-theta1', 'IEC-Fz_P4-theta2', 'IEC-Fz_P4-alpha1', 'IEC-Fz_P4-alpha2', 'IEC-Fz_P4-alpha3', 'IEC-Fz_P4-beta1', 'IEC-Fz_P4-beta2', 'IEC-Fz_P4-beta3', 'IEC-Fz_P4-beta4',
-                                'IEC-Fz_Cp5-delta', 'IEC-Fz_Cp5-theta1', 'IEC-Fz_Cp5-theta2', 'IEC-Fz_Cp5-alpha1', 'IEC-Fz_Cp5-alpha2', 'IEC-Fz_Cp5-alpha3', 'IEC-Fz_Cp5-beta1', 'IEC-Fz_Cp5-beta2', 'IEC-Fz_Cp5-beta3', 'IEC-Fz_Cp5-beta4',
-                                'IEC-Fz_Cp6-delta', 'IEC-Fz_Cp6-theta1', 'IEC-Fz_Cp6-theta2', 'IEC-Fz_Cp6-alpha1', 'IEC-Fz_Cp6-alpha2', 'IEC-Fz_Cp6-alpha3', 'IEC-Fz_Cp6-beta1', 'IEC-Fz_Cp6-beta2', 'IEC-Fz_Cp6-beta3', 'IEC-Fz_Cp6-beta4',
-                                'RBP-Fz-delta', 'RBP-Fz-theta', 'RBP-Fz-alpha', 'RBP-Fz-beta',
-                                'RBP-Cz-delta', 'RBP-Cz-theta', 'RBP-Cz-alpha', 'RBP-Cz-beta', 'RBP-Cz-beta-theta-ratio',
-                                'RBP-Pz-delta', 'RBP-Pz-theta', 'RBP-Pz-alpha', 'RBP-Pz-beta',
-                                'RBP-P3-delta', 'RBP-P3-theta', 'RBP-P3-alpha', 'RBP-P3-beta',
-                                'RBP-Cp5-delta', 'RBP-Cp5-theta', 'RBP-Cp5-alpha', 'RBP-Cp5-beta',
-                                'RBP-P4-delta', 'RBP-P4-theta', 'RBP-P4-alpha', 'RBP-P4-beta',
-                                'RBP-Cp6-delta', 'RBP-Cp6-theta', 'RBP-Cp6-alpha', 'RBP-Cp6-beta',
-                                ]
-            self.data = np.concatenate([self.itc, self.iec, self.rbp])
-        else:
+    '''
+    Class to hold data for a single participant session
+    '''
+    def __init__(self, iec, itc, rbp, iec_control, itc_control, rbp_control, ssq_start, ssq_end, fms, sessionID, participant, runID, stack):
+        '''
+        Function Init
+
+        Sets up the participant session with the provided data
+
+        Inputs:
+
+            iec: The IEC data for the session
+            itc: The ITC data for the session
+            rbp: The RBP data for the session
+            iec_control: The control IEC data for the session
+            itc_control: The control ITC data for the session
+            rbp_control: The control RBP data for the session
+            ssq_start: The SSQ data at the start of the session
+            ssq_end: The SSQ data at the end of the session
+            fms: The FMS data for the session
+            sessionID: The ID of the session
+            participant: The ID of the participant
+            runID: The ID of the run
+            stack: Whether to stack the data
+        '''
+        
+        #Initialise data that does not alter regardless of run type
+        self.stack = stack
+        self.SSQ_start = ssq_start
+        self.SSQ_end = ssq_end
+        self.sessionID = int(sessionID)
+        self.participant = participant
+
+        #Initialise FMS
+        self.FMS = None
+
+        
+        #There are three types of data structures, if we're splitting the data by run, then if we are averaging across the session or using only the last run
+
+        #Check if we're stacking
+        if stack:
+            #We want to hold a variable to check for termination, ie if the data is not appropriate
+            terminate = False
+
+            #Check if iec is completely nan
+            if np.isnan(iec.all()):
+                terminate = True
+            #Initialise control length and length, for iteration and extrapolation
+            control_length = iec_control.shape[0]
             length = iec.shape[0]
-            self.SSQ_start = ssq_start
-            self.SSQ_end = ssq_end
-            self.FMS = fms
-            self.sessionID = int(sessionID)
-            self.participant = participant
+
+            #Check if FMS is completely empty
+            if np.isnan(fms['FMS'].all()):
+                #If it is leave it as 'None'
+                pass
+            else:
+                self.FMS = fms
+
+            #Initialise the data labels for this mode
             self.dataLabels = [
                                 'ITC1-Fz-delta', 'ITC1-Fz-theta1', 'ITC1-Fz-theta2', 'ITC1-Fz-alpha1', 'ITC1-Fz-alpha2', 'ITC1-Fz-alpha3', 'ITC1-Fz-beta1', 'ITC1-Fz-beta2', 'ITC1-Fz-beta3', 'ITC1-Fz-beta4',
                                 'ITC1-Cz-delta', 'ITC1-Cz-theta1', 'ITC1-Cz-theta2', 'ITC1-Cz-alpha1', 'ITC1-Cz-alpha2', 'ITC1-Cz-alpha3', 'ITC1-Cz-beta1', 'ITC1-Cz-beta2', 'ITC1-Cz-beta3', 'ITC1-Cz-beta4',
@@ -141,23 +160,162 @@ class participantSession:
                                 'RBP5-P4-delta', 'RBP5-P4-theta', 'RBP5-P4-alpha', 'RBP5-P4-beta',
                                 'RBP5-Cp6-delta', 'RBP5-Cp6-theta', 'RBP5-Cp6-alpha', 'RBP5-Cp6-beta',
                                 ]
-            if length < 5:
+            
+            #Check if need to terminate
+            if terminate:
+                self.data = None
+            #Extrapolate data if we haven't got enough runs
+            elif length < 5:
                 self.itc = self.extrapolate_repeats(itc).flatten()
                 self.iec = self.extrapolate_repeats(iec).flatten()
                 self.rbp = self.extrapolate_repeats(rbp).flatten()
                 self.data = np.concatenate([self.itc, self.iec, self.rbp])
+            #If we have more than 5 runs, we can just take the first 5
             elif length > 5:
                 self.itc = itc[:5, :].flatten()
                 self.iec = iec[:5, :].flatten()
                 self.rbp = rbp[:5, :].flatten()
                 self.data = np.concatenate([self.itc, self.iec, self.rbp])
+            #Otherwise just flatten the data
             else:
                 self.itc = itc.flatten()
                 self.iec = iec.flatten()
                 self.rbp = rbp.flatten()
                 self.data = np.concatenate([self.itc, self.iec, self.rbp])
+            #Perform the same checks as above but for the control data
+            if control_length < 5:
+                self.itc_control = self.extrapolate_repeats(itc_control).flatten()
+                self.iec_control = self.extrapolate_repeats(iec_control).flatten()
+                self.rbp_control = self.extrapolate_repeats(rbp_control).flatten()
+                self.control = np.concatenate([self.itc_control, self.iec_control, self.rbp_control])
+            elif control_length > 5:
+                self.itc_control = itc_control[:5, :].flatten()
+                self.iec_control = iec_control[:5, :].flatten()
+                self.rbp_control = rbp_control[:5, :].flatten()
+                self.control = np.concatenate([self.itc_control, self.iec_control, self.rbp_control])
+            else:
+                self.itc_control = itc.flatten()
+                self.iec_control = iec.flatten()
+                self.rbp_control = rbp.flatten()
+                self.control = np.concatenate([self.itc_control, self.iec_control, self.rbp_control])
+            #Trim the control data
+            self.control = self.control[:745]
+        #If we have a runID this means we're splitting by run
+        elif runID:
+            #Initialise data labels
+            self.dataLabels = [
+                    'ITC-Fz-delta', 'ITC-Fz-theta1', 'ITC-Fz-theta2', 'ITC-Fz-alpha1', 'ITC-Fz-alpha2', 'ITC-Fz-alpha3', 'ITC-Fz-beta1', 'ITC-Fz-beta2', 'ITC-Fz-beta3', 'ITC-Fz-beta4',
+                    'ITC-Cz-delta', 'ITC-Cz-theta1', 'ITC-Cz-theta2', 'ITC-Cz-alpha1', 'ITC-Cz-alpha2', 'ITC-Cz-alpha3', 'ITC-Cz-beta1', 'ITC-Cz-beta2', 'ITC-Cz-beta3', 'ITC-Cz-beta4',
+                    'ITC-Pz-delta', 'ITC-Pz-theta1', 'ITC-Pz-theta2', 'ITC-Pz-alpha1', 'ITC-Pz-alpha2', 'ITC-Pz-alpha3', 'ITC-Pz-beta1', 'ITC-Pz-beta2', 'ITC-Pz-beta3', 'ITC-Pz-beta4',
+                    'ITC-P3-delta', 'ITC-P3-theta1', 'ITC-P3-theta2', 'ITC-P3-alpha1', 'ITC-P3-alpha2', 'ITC-P3-alpha3', 'ITC-P3-beta1', 'ITC-P3-beta2', 'ITC-P3-beta3', 'ITC-P3-beta4',
+                    'ITC-Cp5-delta', 'ITC-Cp5-theta1', 'ITC-Cp5-theta2', 'ITC-Cp5-alpha1', 'ITC-Cp5-alpha2', 'ITC-Cp5-alpha3', 'ITC-Cp5-beta1', 'ITC-Cp5-beta2', 'ITC-Cp5-beta3', 'ITC-Cp5-beta4',
+                    'ITC-P4-delta', 'ITC-P4-theta1', 'ITC-P4-theta2', 'ITC-P4-alpha1', 'ITC-P4-alpha2', 'ITC-P4-alpha3', 'ITC-P4-beta1', 'ITC-P4-beta2', 'ITC-P4-beta3', 'ITC-P4-beta4',
+                    'ITC-Cp6-delta', 'ITC-Cp6-theta1', 'ITC-Cp6-theta2', 'ITC-Cp6-alpha1', 'ITC-Cp6-alpha2', 'ITC-Cp6-alpha3', 'ITC-Cp6-beta1', 'ITC-Cp6-beta2', 'ITC-Cp6-beta3', 'ITC-Cp6-beta4',
+                    'IEC-Fz_Pz-delta', 'IEC-Fz_Pz-theta1', 'IEC-Fz_Pz-theta2', 'IEC-Fz_Pz-alpha1', 'IEC-Fz_Pz-alpha2', 'IEC-Fz_Pz-alpha3', 'IEC-Fz_Pz-beta1', 'IEC-Fz_Pz-beta2', 'IEC-Fz_Pz-beta3', 'IEC-Fz_Pz-beta4',
+                    'IEC-Fz_P3-delta', 'IEC-Fz_P3-theta1', 'IEC-Fz_P3-theta2', 'IEC-Fz_P3-alpha1', 'IEC-Fz_P3-alpha2', 'IEC-Fz_P3-alpha3', 'IEC-Fz_P3-beta1', 'IEC-Fz_P3-beta2', 'IEC-Fz_P3-beta3', 'IEC-Fz_P3-beta4',
+                    'IEC-Fz_P4-delta', 'IEC-Fz_P4-theta1', 'IEC-Fz_P4-theta2', 'IEC-Fz_P4-alpha1', 'IEC-Fz_P4-alpha2', 'IEC-Fz_P4-alpha3', 'IEC-Fz_P4-beta1', 'IEC-Fz_P4-beta2', 'IEC-Fz_P4-beta3', 'IEC-Fz_P4-beta4',
+                    'IEC-Fz_Cp5-delta', 'IEC-Fz_Cp5-theta1', 'IEC-Fz_Cp5-theta2', 'IEC-Fz_Cp5-alpha1', 'IEC-Fz_Cp5-alpha2', 'IEC-Fz_Cp5-alpha3', 'IEC-Fz_Cp5-beta1', 'IEC-Fz_Cp5-beta2', 'IEC-Fz_Cp5-beta3', 'IEC-Fz_Cp5-beta4',
+                    'IEC-Fz_Cp6-delta', 'IEC-Fz_Cp6-theta1', 'IEC-Fz_Cp6-theta2', 'IEC-Fz_Cp6-alpha1', 'IEC-Fz_Cp6-alpha2', 'IEC-Fz_Cp6-alpha3', 'IEC-Fz_Cp6-beta1', 'IEC-Fz_Cp6-beta2', 'IEC-Fz_Cp6-beta3', 'IEC-Fz_Cp6-beta4',
+                    'RBP-Fz-delta', 'RBP-Fz-theta', 'RBP-Fz-alpha', 'RBP-Fz-beta',
+                    'RBP-Cz-delta', 'RBP-Cz-theta', 'RBP-Cz-alpha', 'RBP-Cz-beta', 'RBP-Cz-beta-theta-ratio',
+                    'RBP-Pz-delta', 'RBP-Pz-theta', 'RBP-Pz-alpha', 'RBP-Pz-beta',
+                    'RBP-P3-delta', 'RBP-P3-theta', 'RBP-P3-alpha', 'RBP-P3-beta',
+                    'RBP-Cp5-delta', 'RBP-Cp5-theta', 'RBP-Cp5-alpha', 'RBP-Cp5-beta',
+                    'RBP-P4-delta', 'RBP-P4-theta', 'RBP-P4-alpha', 'RBP-P4-beta',
+                    'RBP-Cp6-delta', 'RBP-Cp6-theta', 'RBP-Cp6-alpha', 'RBP-Cp6-beta',
+                    ]
+            #Initialise all data points
+            self.iec = iec
+            self.itc = itc
+            self.rbp = rbp
+            self.iec_control = iec_control
+            self.itc_control = itc_control
+            self.rbp_control = rbp_control
+            self.FMS = fms
+            self.runID = int(runID)
+            self.data = np.concatenate([self.itc, self.iec, self.rbp])
+            self.control = np.concatenate([self.itc_control, self.iec_control, self.rbp_control])
+        #Finally if else, we're selecting the final run in the series
+        else:
+            #Iterate over the length of all run
+            for i in range(5):
+                #Check if we can use the current run
+                try:
+                    self.iec = iec[i] if not np.isnan(iec[i][0]) else self.iec
+                    self.itc = itc[i] if not np.isnan(itc[i][0]) else self.itc
+                    self.rbp = rbp[i] if not np.isnan(rbp[i][0]) else self.rbp
+                except:
+                    #Otherwise it doesn't exist (we're iterating beyond the length of the runs of this session)
+                    pass
+                #Same as above but for control
+                try:
+                    self.iec_control = iec_control[i] if not np.isnan(iec_control[i][0]) else self.iec_control
+                    self.itc_control = itc_control[i] if not np.isnan(itc_control[i][0]) else self.itc_control
+                    self.rbp_control = rbp_control[i] if not np.isnan(rbp_control[i][0]) else self.rbp_control
+                except:
+                    pass
+                #Same as above but for fms
+                try:
+                    self.FMS = fms.iloc[i] if not np.isnan(fms.iloc[i][0]) else self.FMS
+                except:
+                    pass
+                try:
+                    print(self.FMS['FMS'])
+                except:
+                    pass
+            self.dataLabels = [
+                                'ITC-Fz-delta', 'ITC-Fz-theta1', 'ITC-Fz-theta2', 'ITC-Fz-alpha1', 'ITC-Fz-alpha2', 'ITC-Fz-alpha3', 'ITC-Fz-beta1', 'ITC-Fz-beta2', 'ITC-Fz-beta3', 'ITC-Fz-beta4',
+                                'ITC-Cz-delta', 'ITC-Cz-theta1', 'ITC-Cz-theta2', 'ITC-Cz-alpha1', 'ITC-Cz-alpha2', 'ITC-Cz-alpha3', 'ITC-Cz-beta1', 'ITC-Cz-beta2', 'ITC-Cz-beta3', 'ITC-Cz-beta4',
+                                'ITC-Pz-delta', 'ITC-Pz-theta1', 'ITC-Pz-theta2', 'ITC-Pz-alpha1', 'ITC-Pz-alpha2', 'ITC-Pz-alpha3', 'ITC-Pz-beta1', 'ITC-Pz-beta2', 'ITC-Pz-beta3', 'ITC-Pz-beta4',
+                                'ITC-P3-delta', 'ITC-P3-theta1', 'ITC-P3-theta2', 'ITC-P3-alpha1', 'ITC-P3-alpha2', 'ITC-P3-alpha3', 'ITC-P3-beta1', 'ITC-P3-beta2', 'ITC-P3-beta3', 'ITC-P3-beta4',
+                                'ITC-Cp5-delta', 'ITC-Cp5-theta1', 'ITC-Cp5-theta2', 'ITC-Cp5-alpha1', 'ITC-Cp5-alpha2', 'ITC-Cp5-alpha3', 'ITC-Cp5-beta1', 'ITC-Cp5-beta2', 'ITC-Cp5-beta3', 'ITC-Cp5-beta4',
+                                'ITC-P4-delta', 'ITC-P4-theta1', 'ITC-P4-theta2', 'ITC-P4-alpha1', 'ITC-P4-alpha2', 'ITC-P4-alpha3', 'ITC-P4-beta1', 'ITC-P4-beta2', 'ITC-P4-beta3', 'ITC-P4-beta4',
+                                'ITC-Cp6-delta', 'ITC-Cp6-theta1', 'ITC-Cp6-theta2', 'ITC-Cp6-alpha1', 'ITC-Cp6-alpha2', 'ITC-Cp6-alpha3', 'ITC-Cp6-beta1', 'ITC-Cp6-beta2', 'ITC-Cp6-beta3', 'ITC-Cp6-beta4',
+                                'IEC-Fz_Pz-delta', 'IEC-Fz_Pz-theta1', 'IEC-Fz_Pz-theta2', 'IEC-Fz_Pz-alpha1', 'IEC-Fz_Pz-alpha2', 'IEC-Fz_Pz-alpha3', 'IEC-Fz_Pz-beta1', 'IEC-Fz_Pz-beta2', 'IEC-Fz_Pz-beta3', 'IEC-Fz_Pz-beta4',
+                                'IEC-Fz_P3-delta', 'IEC-Fz_P3-theta1', 'IEC-Fz_P3-theta2', 'IEC-Fz_P3-alpha1', 'IEC-Fz_P3-alpha2', 'IEC-Fz_P3-alpha3', 'IEC-Fz_P3-beta1', 'IEC-Fz_P3-beta2', 'IEC-Fz_P3-beta3', 'IEC-Fz_P3-beta4',
+                                'IEC-Fz_P4-delta', 'IEC-Fz_P4-theta1', 'IEC-Fz_P4-theta2', 'IEC-Fz_P4-alpha1', 'IEC-Fz_P4-alpha2', 'IEC-Fz_P4-alpha3', 'IEC-Fz_P4-beta1', 'IEC-Fz_P4-beta2', 'IEC-Fz_P4-beta3', 'IEC-Fz_P4-beta4',
+                                'IEC-Fz_Cp5-delta', 'IEC-Fz_Cp5-theta1', 'IEC-Fz_Cp5-theta2', 'IEC-Fz_Cp5-alpha1', 'IEC-Fz_Cp5-alpha2', 'IEC-Fz_Cp5-alpha3', 'IEC-Fz_Cp5-beta1', 'IEC-Fz_Cp5-beta2', 'IEC-Fz_Cp5-beta3', 'IEC-Fz_Cp5-beta4',
+                                'IEC-Fz_Cp6-delta', 'IEC-Fz_Cp6-theta1', 'IEC-Fz_Cp6-theta2', 'IEC-Fz_Cp6-alpha1', 'IEC-Fz_Cp6-alpha2', 'IEC-Fz_Cp6-alpha3', 'IEC-Fz_Cp6-beta1', 'IEC-Fz_Cp6-beta2', 'IEC-Fz_Cp6-beta3', 'IEC-Fz_Cp6-beta4',
+                                'RBP-Fz-delta', 'RBP-Fz-theta', 'RBP-Fz-alpha', 'RBP-Fz-beta',
+                                'RBP-Cz-delta', 'RBP-Cz-theta', 'RBP-Cz-alpha', 'RBP-Cz-beta', 'RBP-Cz-beta-theta-ratio',
+                                'RBP-Pz-delta', 'RBP-Pz-theta', 'RBP-Pz-alpha', 'RBP-Pz-beta',
+                                'RBP-P3-delta', 'RBP-P3-theta', 'RBP-P3-alpha', 'RBP-P3-beta',
+                                'RBP-Cp5-delta', 'RBP-Cp5-theta', 'RBP-Cp5-alpha', 'RBP-Cp5-beta',
+                                'RBP-P4-delta', 'RBP-P4-theta', 'RBP-P4-alpha', 'RBP-P4-beta',
+                                'RBP-Cp6-delta', 'RBP-Cp6-theta', 'RBP-Cp6-alpha', 'RBP-Cp6-beta',
+                                ]
+            #Try to concatenate the data, unless its not been set, in which case we need to remove the data session
+            try:
+                self.data = np.concatenate([self.itc, self.iec, self.rbp])
+            except:
+                self.data = None
+            try:
+                self.control = np.concatenate([self.itc_control, self.iec_control, self.rbp_control])
+            except:
+                self.control = None
+        #Check if we need to remove this data session
+        self.remove = False
+        try:
+            if self.data == None:
+                self.check_1 = True
+        except:
+            self.check_1 = False
+        try:
+            if self.FMS == None:
+                self.check_2 = True
+        except:
+            self.check_2 = False
+
+        if self.check_1 and self.check_2:
+            self.remove = True
+
 
     def extrapolate_repeats(self, arr):
+        '''
+        Function - Extrapolate Repeats
+
+        Designed to extend the number of repeats in the data by predicting missing values.
+        '''
         n_repeats, n_samples = arr.shape
         x = np.arange(n_repeats)
         padded_arr = np.copy(arr)
