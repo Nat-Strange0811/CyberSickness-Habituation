@@ -88,27 +88,34 @@ class cluster:
             self.kruskal_results[feature] = (self.kruskal_results[feature][0], p_values_corrected[i])
             #Check if the feature has significant variance
             if p_values_corrected[i] is None or p_values_corrected[i] > 0.05:
-                continue
+                if feature in ["Session Divergence", "FMS"]:
+                    pass
+                else:
+                    continue
 
             #Plot overlapped distribution for the clusters, attempting to visualise separation
-            plt.figure(figsize=(14, 5))
-
-            plt.subplot(1, 2, 1)
+            
+            plt.figure(figsize=(7, 6))
+            '''
+            plt.subplot(2, 1, 1)
             sns.stripplot(x="all", y=feature, hue="cluster", data=dataframe,
                         jitter=True, dodge=False, alpha=0.6)
             plt.xlabel("")
             plt.ylabel(feature)
+            '''
+            palette = sns.color_palette("Set2", len(dataframe['cluster'].unique()))
+
 
             #Plot the violin plot for each identified cluster
-            plt.subplot(1, 2, 2)
-            sns.violinplot(x="cluster", y=feature, data=dataframe)
+            #plt.subplot(2, 1, 2)
+            sns.violinplot(x="cluster", y=feature, data=dataframe, palette=palette, alpha=0.7)
             sns.stripplot(x="cluster", y=feature, data=dataframe, 
               color="black", size=2, jitter=True, alpha=0.4)
             plt.xlabel("Cluster")
             plt.ylabel(feature)
 
             #Add a title to the plot
-            plt.suptitle(f"Kruskal-Wallis Test for {feature}\n p={p_values_corrected[i]:.4f}, h={self.kruskal_results[feature][0]:.4f}", fontsize=16)
+            plt.suptitle(f"{self.name}\n Kruskal-Wallis Test for {feature}\n p={p_values_corrected[i]:.4f}, h={self.kruskal_results[feature][0]:.4f}", fontsize=16)
             plt.tight_layout(rect=[0, 0, 1, 0.95])
 
             #Save the plot
@@ -140,6 +147,8 @@ class cluster:
             Saved CSV
         '''
         
+        
+
         #Add Session Divergence label
         self.data_labels.append("Session Divergence")
         self.data_labels.append("FMS")
@@ -147,16 +156,19 @@ class cluster:
         #Initialise the date/time and hold the clusters and labels
         date_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
         clusters = np.array(self.labels)
-        cluster_labels = sorted(set(self.labels))
+        cluster_labels = []
+        for i, label in enumerate(sorted(set(self.labels))):
+            cluster_labels.append(f"Cluster {i + 1}")
 
         #Calculate the average session number for each cluster
-        cluster_average = [np.mean(np.array(self.sessions)[clusters == label]) for label in cluster_labels]
+        cluster_average = [np.mean(np.array(self.sessions)[clusters == label]) for label in sorted(set(self.labels))]
 
         #Create the csv structure of labels and metrics
         labels = ["Model", "Silhouette", "Calinski", "Davies"] + list(cluster_labels) + self.data_labels
         metrics = [self.name, self.silhouette, self.calinski, self.davies] + cluster_average + [self.kruskal_results[label][1] for label in self.data_labels]
+        h_values = ['H_values', '', '', '', '', ''] + [self.kruskal_results[label][0] for label in self.data_labels]
 
-        data = [labels, metrics]
+        data = zip(labels, metrics, h_values)
 
         #Write the csv
         if not os.path.exists(filepath):

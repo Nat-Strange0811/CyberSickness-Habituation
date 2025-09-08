@@ -49,11 +49,11 @@ def main():
 
     loaded_data = data(ITC_folder, IEC_folder, RBP_folder, SSQ_folder, FMS_folder, SOT_folder, split = split, stack = False)
 
-    cluster(loaded_data)
+    #cluster(loaded_data)
 
     #fms_ssq(loaded_data)
 
-    #analyse_trends(loaded_data, split)
+    analyse_trends(loaded_data, split)
 
     #sot_analysis(loaded_data.SOT)
 

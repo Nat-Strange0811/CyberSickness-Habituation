@@ -63,8 +63,6 @@ class ssq():
         self.session_6 = self.sessions[6]
 
     def analyse(self):
-        # Perform SSQ analysis
-        self.anova()
 
         self.plot()
 
@@ -72,11 +70,6 @@ class ssq():
 
         self.save_results()
 
-    def anova(self):
-        from scipy.stats import f_oneway
-        clean_sessions = [np.array(vals)[~np.isnan(vals)] for vals in self.sessions.values()]
-        f_stat, p_value = f_oneway(*clean_sessions)
-        self.anova_results = (f_stat, p_value)
     
     def plot(self):
         date_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
@@ -84,7 +77,6 @@ class ssq():
         plt.subplot(1,2,1)
         for i, participant in enumerate(set([key[0] for key in self.data.keys()])):
             sessions = [np.nanmean(self.data[(participant, session)][1]['Value'] - self.data[(participant, session)][0]['Value']) for session in range(1, 7) if (participant, session) in self.data]
-            print(sessions)
             plt.plot(range(1, len(sessions) + 1), sessions, marker=self.markers[i], label=participant, color=self.colors[i])
         average = [np.nanmean(self.session_1), np.nanmean(self.session_2), np.nanmean(self.session_3), np.nanmean(self.session_4), np.nanmean(self.session_5), np.nanmean(self.session_6)]
         plt.xlabel('Session')
@@ -106,8 +98,8 @@ class ssq():
 
     def save_results(self):
         date_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-        labels = ["Anova", "t_test"]
-        metrics = [self.anova_results[1], self.t_test_results[1]]
+        labels = ["t_test"]
+        metrics = [self.t_test_results[1]]
 
         data = [labels, metrics]
 

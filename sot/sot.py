@@ -7,6 +7,8 @@ import os
 import csv
 import datetime
 from statsmodels.stats.multitest import multipletests
+from scipy.stats import shapiro
+from scipy.stats import wilcoxon
 
 class sot():
     '''
@@ -59,23 +61,40 @@ class sot():
         #Form the directory
         if not os.path.exists('Generated_plots/sot'):
             os.makedirs('Generated_plots/sot')
+
+        
         date_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
-        #Loop over all environments and plot the differing boxplots
-        for i, environment in enumerate(self.environments):
+        pre_data = []
+        post_data = []
+        labels = []
+
+        # Collect all data across environments
+        for environment in self.environments:
             data = self.data[environment]
-            plt.figure(figsize=(10, 6))
-            plt.subplot(1,2,1)
-            plt.boxplot(data[0])
-            plt.ylabel('SOT Score')
-            plt.title(f'Initial SOT Scores')
-            plt.subplot(1,2,2)
-            plt.boxplot(data[1])
-            plt.title(f'Final SOT Scores')
-            plt.ylabel('SOT Score')
-            plt.suptitle(f'Compairing distributions of SOT Scores for {environment}')
-            plt.savefig(f'Generated_plots/sot/{date_time}_SOT_distribution_{environment}_Scores_Across_Sessions.png')
-            plt.close()
+            pre_data.append(data[0])   # initial scores
+            post_data.append(data[1])  # final scores
+            labels.append(environment)
+
+        plt.figure(figsize=(12, 6))
+
+        # Plot Pre distributions
+        plt.subplot(1, 2, 1)
+        plt.boxplot(pre_data, labels=labels)
+        plt.title("Initial (Pre) SOT Scores")
+        plt.ylabel("SOT Score")
+
+        # Plot Post distributions
+        plt.subplot(1, 2, 2)
+        plt.boxplot(post_data, labels=labels)
+        plt.title("Final (Post) SOT Scores")
+        plt.ylabel("SOT Score")
+
+        plt.suptitle("Comparing Distributions of SOT Scores Across Environments")
+        plt.tight_layout(rect=[0, 0, 1, 0.95])
+
+        plt.savefig(f'Generated_plots/sot/{date_time}_SOT_distribution_All_Environments.png')
+        plt.close()
 
     def t_test(self):
         '''
@@ -96,8 +115,12 @@ class sot():
 
         #Loop over all environments
         for i, environment in enumerate(self.environments):
-            #Calculate the t_stat and p_value
-            t_stat, p_value = stats.ttest_ind(self.data[environment][0], self.data[environment][1], equal_var=False)
+            stat, p = shapiro(self.data[environment][0])
+            if p < 0.05:
+                print(f"Not normal - {environment}")
+                t_stat, p_value = wilcoxon(self.data[environment][0], self.data[environment][1])
+            else:
+                t_stat, p_value = stats.ttest_ind(self.data[environment][0], self.data[environment][1], equal_var=False)
             #Append the results
             self.t_test_results[environment] = [t_stat, p_value]
             p_values.append(p_value)
@@ -127,9 +150,9 @@ class sot():
         date_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
         #Form the data
-        data = [["Environment","t_test"]]
+        data = [["Environment","t_test", "p_value"]]
         for i, result in enumerate(self.t_test_results.values()):
-            data.append([self.environments[i], result[1]])
+            data.append([self.environments[i], result[0], result[1]])
 
         #Form directory and save
         if not os.path.exists(filepath):

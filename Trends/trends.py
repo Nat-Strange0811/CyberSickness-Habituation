@@ -110,15 +110,15 @@ class trends():
         control_reject, control_pvals_corrected, _, _ = multipletests(np.array(self.control_p_values), alpha=0.05, method='fdr_bh')
 
         for i in range(len(eeg_pvals_corrected)):
-            self.results[i][2] = eeg_pvals_corrected[i]
-            self.results[i][4] = control_pvals_corrected[i]
+            self.results[i][3] = eeg_pvals_corrected[i]
+            self.results[i][5] = control_pvals_corrected[i]
 
             if eeg_pvals_corrected[i] <= 0.05 and control_pvals_corrected[i] > 0.05:
                 mode = "0"
             elif eeg_pvals_corrected[i] <= 0.05 and ((self.eeg_r_values[i] > 0 and self.control_r_values[i] < 0) or (self.eeg_r_values[i] < 0 and self.control_r_values[i] > 0)):
                 mode = "1"
             else:
-                continue
+                mode = "2"
             eeg = self.plots[i][0]
             fms = self.plots[i][1]
             control = self.plots[i][2]
@@ -232,7 +232,7 @@ class trends():
         self.control_p_values.append(control_p)
         self.eeg_r_values.append(eeg_r)
         self.control_r_values.append(control_r)
-        self.results.append([participant, eeg_biomarker, eeg_r, eeg_p, control_r, control_p])
+        self.results.append([participant, self.data_labels[eeg_biomarker], eeg_r, eeg_p, control_r, control_p])
         #Append the results of these tests to the results list
         return ((eeg_r, eeg_p), (control_r, control_p))
         #Return the values as tuple
@@ -255,49 +255,50 @@ class trends():
 
             Generated plots for the significant results
         '''
-
+        print(self.data_labels[eeg_biomarker])
         #Initialise the date and time
         date_time = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 
-        fig, ax1 = plt.subplots(figsize=(10, 6))
+        fig, ax1 = plt.subplots(figsize=(12, 7))
 
         # Plot EEG + Control on the left y-axis
-        ax1.plot(range(len(eeg)), eeg, marker='o', color='blue', label='EEG Biomarker')
-        ax1.plot(range(len(control)), control, marker='o', color='green', label='Control')
-        ax1.set_ylabel("EEG / Control", color="blue")
-        ax1.tick_params(axis="y", labelcolor="blue")
+        ax1.plot(range(1, len(eeg) + 1), eeg, marker='o', color='cyan', label='Habituation')
+        ax1.plot(range(1, len(control) + 1), control, marker='o', color='orange', label='Control')
+        ax1.set_ylabel("EEG Biomarker", color="black", fontsize = 16)
+        ax1.tick_params(axis="y", labelcolor="black")
 
         # Create a second y-axis for FMS
         ax2 = ax1.twinx()
-        ax2.plot(range(len(fms)), fms, marker='o', color='orange', label='FMS')
-        ax2.set_ylabel("FMS", color="orange")
-        ax2.tick_params(axis="y", labelcolor="orange")
+        ax2.plot(range(1, len(fms) + 1), fms, marker='o', color='magenta', label='FMS')
+        ax2.set_ylabel("FMS", color="black", fontsize = 16)
+        ax2.tick_params(axis="y", labelcolor="black")
+        plt.title(f'Habituation_r: {stats[0][0]:.2f}, Habituation_p: {stats[0][1]:.4f}\n'
+                     f'Control_r: {stats[1][0]:.2f}, Control_p: {stats[1][1]:.4f}', fontsize=14)
+        fig.suptitle(f'\nAverage Change in EEG Biomarker {self.data_labels[eeg_biomarker]}\n under Habituation vs Control', fontsize=22, fontweight = 'bold')
 
-        # Title
-        plt.title(
-            f'Participant {participant} - EEG Biomarker {self.data_labels[eeg_biomarker]}, '
-            f'EEG_r: {stats[0][0]:.2f}, EEG_p: {stats[0][1]:.4f}, '
-            f'Control_r: {stats[1][0]:.2f}, Control_p: {stats[1][1]:.4f}'
-        )
-
+        ax1.set_xlabel("Run", fontsize = 16)
         # Combine legends from both axes
         lines1, labels1 = ax1.get_legend_handles_labels()
         lines2, labels2 = ax2.get_legend_handles_labels()
         ax1.legend(lines1 + lines2, labels1 + labels2, loc="best")
 
-        plt.tight_layout()
+        plt.tight_layout(rect=[0, 0, 1, 0.95]) 
 
         if plot_id == "0":
             #Initialise directory
             if not os.path.exists(f'Generated_plots/trends/{self.label}/Significant vs Not Significant'):
                 os.makedirs(f'Generated_plots/trends/{self.label}/Significant vs Not Significant')
             plt.savefig(f'Generated_plots/trends/{self.label}/Significant vs Not Significant/{date_time}_Participant_{participant}_EEG_Biomarker_{eeg_biomarker}.png')
-        else:
+        elif plot_id == "1":
             if not os.path.exists(f'Generated_plots/trends/{self.label}/Opposite correlation'):
                 os.makedirs(f'Generated_plots/trends/{self.label}/Opposite correlation')
             plt.savefig(f'Generated_plots/trends/{self.label}/Opposite correlation/{date_time}_Participant_{participant}_EEG_Biomarker_{eeg_biomarker}.png')
-
+        else:
+            if not os.path.exists(f'Generated_plots/trends/{self.label}/No Significance'):
+                os.makedirs(f'Generated_plots/trends/{self.label}/No Significance')
+            plt.savefig(f'Generated_plots/trends/{self.label}/No Significance/{date_time}_Participant_{participant}_EEG_Biomarker_{eeg_biomarker}.png')
         plt.close()
+
     def save_results(self):
         '''
         Function to save results to a csv file.
